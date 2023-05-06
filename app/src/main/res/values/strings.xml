@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CoUrt</string>
+    <string name="title_activity_welcome">Welcome</string>
+    <string name="title_activity_form_user_info">FormUserInfo</string>
+</resources>
