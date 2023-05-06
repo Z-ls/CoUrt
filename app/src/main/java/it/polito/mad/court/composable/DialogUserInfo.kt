@@ -34,7 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import it.polito.mad.court.dataclass.User
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -44,13 +43,13 @@ fun UserInputDialog(
     onDismiss: () -> Unit
 ) {
 
-    val newUser by rememberSaveable { mutableStateOf(User()) }
-    val pagerState = rememberPagerState(1)
+//    val newUser by rememberSaveable { mutableStateOf(User()) }
+    val pagerState = rememberPagerState(0)
     val coroutineScope = rememberCoroutineScope()
 
     val onSave = {
         coroutineScope.launch {
-            newUser.save()
+//            newUser.save()
             onDismiss()
         }
     }
