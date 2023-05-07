@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -25,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenderPicker(
     onGenderSelected: (String) -> Unit
@@ -81,26 +79,6 @@ fun GenderPicker(
                 }
             }
         }
-
-//        if (isExpanded) {
-//            Divider()
-//
-//            genderOptions.forEach { gender ->
-//                Text(
-//                    text = gender,
-//                    style = MaterialTheme.typography.bodySmall,
-//                    color = if (gender == selectedGender) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clickable {
-//                            onGenderSelected(gender)
-//                            isExpanded = false
-//                        }
-//                        .padding(vertical = 16.dp, horizontal = 24.dp)
-//                )
-//                Divider()
-//            }
-//        }
     }
 }
 

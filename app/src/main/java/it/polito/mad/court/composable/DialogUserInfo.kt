@@ -271,7 +271,6 @@ fun Page1() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview
 fun PreviewFormUserInfo() {
