@@ -140,7 +140,9 @@ class DbCourt {
         refs.get().addOnSuccessListener {
             val reservations = mutableListOf<Reservation>()
             for (data in it.children) {
-                reservations.add(gson.fromJson(data.value.toString(), Reservation::class.java)!!)
+                val res = gson.fromJson(data.value.toString(), Reservation::class.java)!!
+                res.id = data.key!!
+                reservations.add(res)
             }
             callback(reservations)
         }
@@ -160,27 +162,23 @@ class DbCourt {
     }
 
     fun addReservation(
-        reservation: Reservation,
-    ): String {
+        reservation: Reservation
+    ) {
         val refs =
             getReference(
                 "reservations",
             )
         refs.push().setValue(gson.toJson(reservation))
-        println(gson.toJson(reservation.date))
-        println(gson.toJson(reservation.time))
-        return refs.key!!
     }
 
     fun updateReservation(
         reservation: Reservation,
-    ): String {
+    ) {
         val refs =
             getReference(
                 "reservations",
             )
         refs.child(reservation.id).setValue(gson.toJson(reservation))
-        return refs.key!!
     }
 
     fun deleteReservation(

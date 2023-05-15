@@ -1,7 +1,6 @@
 package it.polito.mad.court.composable
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,6 +54,7 @@ import it.polito.mad.court.dataclass.TimeString
 import it.polito.mad.court.dataclass.User
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlin.math.roundToInt
 
@@ -63,14 +63,13 @@ import kotlin.math.roundToInt
 fun DialogReservationForm(
     user: User = User(), res: Reservation = Reservation(user = user), onDismiss: () -> Unit
 ) {
-
-    val newReservation by remember { mutableStateOf(res) }
-    val court = remember { mutableStateOf<Court?>(null) }
-    val pagerState = rememberPagerState(0)
-    val coroutineScope = rememberCoroutineScope()
+    val isUpdating = remember { mutableStateOf(res.id != "") }
+    val newReservation = remember { mutableStateOf(res) }
+    val court = remember { mutableStateOf(res.court) }
     val showWarning = remember { mutableStateOf(false) }
     val msgWarnings = remember { mutableStateOf(listOf<String>()) }
-    var skillLevelIndex by remember { mutableStateOf(newReservation.skillLevel) }
+    val pagerState = rememberPagerState(0)
+    val coroutineScope = rememberCoroutineScope()
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -92,19 +91,16 @@ fun DialogReservationForm(
                 when (page) {
                     0 -> {
                         DialogCourtForm(
-                            court = court, res = res
+                            court = court, res = newReservation.value
                         )
                     }
 
                     1 -> {
-                        DialogUserForm(minPlayers = res.minPlayers,
-                            maxPlayers = res.maxPlayers,
-                            skillLevelIndex = skillLevelIndex,
-                            onMinPlayersChanged = { res.minPlayers = it },
-                            onMaxPlayersChanged = { res.maxPlayers = it },
-                            onSkillLevelValueChange = {
-                                skillLevelIndex = it
-                            })
+                        DialogUserForm(
+                            res = newReservation.value,
+                            onMinPlayersChanged = { newReservation.value.minPlayers = it },
+                            onMaxPlayersChanged = { newReservation.value.maxPlayers = it },
+                            onSkillLevelValueChange = { newReservation.value.skillLevel = it })
                     }
                 }
             }
@@ -141,15 +137,16 @@ fun DialogReservationForm(
                             }
                         } else {
                             coroutineScope.launch {
-                                newReservation.javaClass.declaredFields.forEach {
-                                    it.isAccessible = true
-                                    Log.d("field", "${it.name} = ${it.get(newReservation)}")
-                                }
-                                if (checkValidReservation(newReservation).first) {
-                                    DbCourt().addReservation(newReservation)
+                                if (checkValidReservation(newReservation.value).first) {
+                                    if (isUpdating.value) {
+                                        DbCourt().updateReservation(newReservation.value)
+                                    } else {
+                                        DbCourt().addReservation(newReservation.value)
+                                    }
                                     onDismiss()
                                 } else {
-                                    msgWarnings.value = checkValidReservation(newReservation).second
+                                    msgWarnings.value =
+                                        checkValidReservation(newReservation.value).second
                                     showWarning.value = true
                                 }
                             }
@@ -162,6 +159,8 @@ fun DialogReservationForm(
                 Button(
                     onClick = {
                         coroutineScope.launch {
+                            newReservation.value = Reservation(user = user)
+                            court.value = Court()
                             onDismiss()
                         }
                     }, modifier = Modifier.fillMaxWidth()
@@ -182,13 +181,9 @@ fun checkValidReservation(res: Reservation): Pair<Boolean, List<String>> {
         valid = false
         warnings.add("Court name cannot be empty")
     }
-    if (res.date.date.isBefore(LocalDate.now())) {
+    if (LocalDateTime.of(res.date.date, res.time.time).isBefore(LocalDateTime.now())) {
         valid = false
-        warnings.add("Date cannot be in the past")
-    }
-    if (res.time.time.isBefore(LocalTime.now())) {
-        valid = false
-        warnings.add("Time cannot be in the past")
+        warnings.add("Date and time cannot be in the past")
     }
     if (res.minPlayers < 1) {
         valid = false
@@ -208,13 +203,15 @@ fun checkValidReservation(res: Reservation): Pair<Boolean, List<String>> {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialogUserForm(
-    minPlayers: Int,
-    maxPlayers: Int,
-    skillLevelIndex: Int,
+    res: Reservation = Reservation(),
     onSkillLevelValueChange: (Int) -> Unit,
     onMinPlayersChanged: (Int) -> Unit,
     onMaxPlayersChanged: (Int) -> Unit,
 ) {
+
+    val minPlayers = remember { mutableStateOf(res.minPlayers) }
+    val maxPlayers = remember { mutableStateOf(res.maxPlayers) }
+
     Column(
         modifier = Modifier
             .wrapContentSize()
@@ -231,11 +228,10 @@ fun DialogUserForm(
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .fillMaxWidth(0.5f),
-                value = minPlayers.toString(),
+                value = minPlayers.value.toString(),
                 onValueChange = {
-                    if (it.isNotBlank()) {
-                        onMinPlayersChanged(it.toInt())
-                    }
+                    minPlayers.value = it.toInt()
+                    onMinPlayersChanged(it.toInt())
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number
@@ -245,11 +241,10 @@ fun DialogUserForm(
             )
             OutlinedTextField(
                 modifier = Modifier.padding(start = 8.dp),
-                value = maxPlayers.toString(),
+                value = maxPlayers.value.toString(),
                 onValueChange = {
-                    if (it.isNotBlank()) {
-                        onMaxPlayersChanged(it.toInt())
-                    }
+                    maxPlayers.value = it.toInt()
+                    onMaxPlayersChanged(it.toInt())
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number
@@ -263,7 +258,7 @@ fun DialogUserForm(
             verticalAlignment = Alignment.CenterVertically
         ) {
             SkillLevelSlider(
-                skillLevelIndex = skillLevelIndex, onSkillLevelChanged = onSkillLevelValueChange
+                res = res, onSkillLevelChanged = onSkillLevelValueChange
             )
         }
     }
@@ -271,8 +266,11 @@ fun DialogUserForm(
 
 @Composable
 fun SkillLevelSlider(
-    skillLevelIndex: Int, onSkillLevelChanged: (Int) -> Unit
+    res: Reservation, onSkillLevelChanged: (Int) -> Unit
 ) {
+
+    val skillLevelIndex = remember { mutableStateOf(res.skillLevel) }
+
     Column(
         modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -281,7 +279,10 @@ fun SkillLevelSlider(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            RadioButton(selected = skillLevelIndex == 0, onClick = { onSkillLevelChanged(0) })
+            RadioButton(selected = skillLevelIndex.value == 0, onClick = {
+                skillLevelIndex.value = 0
+                onSkillLevelChanged(0)
+            })
             Text(modifier = Modifier.padding(end = 16.dp), text = "Beginner")
         }
         Row(
@@ -289,7 +290,10 @@ fun SkillLevelSlider(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            RadioButton(selected = skillLevelIndex == 1, onClick = { onSkillLevelChanged(1) })
+            RadioButton(selected = skillLevelIndex.value == 1, onClick = {
+                skillLevelIndex.value = 1
+                onSkillLevelChanged(1)
+            })
             Text(modifier = Modifier.padding(end = 16.dp), text = "Intermediate")
         }
         Row(
@@ -297,7 +301,10 @@ fun SkillLevelSlider(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            RadioButton(selected = skillLevelIndex == 2, onClick = { onSkillLevelChanged(2) })
+            RadioButton(selected = skillLevelIndex.value == 2, onClick = {
+                skillLevelIndex.value = 2
+                onSkillLevelChanged(2)
+            })
             Text(modifier = Modifier.padding(end = 16.dp), text = "Advanced")
         }
     }
@@ -306,7 +313,7 @@ fun SkillLevelSlider(
 
 @Composable
 fun DialogCourtForm(
-    court: MutableState<Court?>, res: Reservation
+    court: MutableState<Court>, res: Reservation
 ) {
 
     val selectedDate = remember { mutableStateOf(res.date.date) }
@@ -321,6 +328,7 @@ fun DialogCourtForm(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         DialogCourtSelection(
+            courtName = res.court.name,
             onSelect = {
                 court.value = it
                 res.court = it
@@ -339,7 +347,7 @@ fun DialogCourtForm(
                 res.time = TimeString(it)
             }
         }
-        court.value?.let {
+        court.value.let {
             DurationDropdown(price = it.price,
                 duration = res.duration,
                 onDurationSelected = { duration ->
@@ -393,7 +401,7 @@ fun DurationDropdown(
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun DialogCourtSelection(onSelect: (Court) -> Unit) {
+fun DialogCourtSelection(courtName: String, onSelect: (Court) -> Unit) {
 
     var searchText by remember { mutableStateOf("") }
     val searchResult = remember { mutableStateOf(mutableListOf<Court>()) }
@@ -403,7 +411,10 @@ fun DialogCourtSelection(onSelect: (Court) -> Unit) {
         .clickable { isSearchOpen = true }
         .width(300.dp)) {
         OutlinedTextField(
-            placeholder = { Text("By Court Name...") },
+            placeholder = {
+                if (courtName.isNotBlank()) Text(courtName)
+                else Text("By Court Name...")
+            },
             value = searchText,
             onValueChange = {
                 searchText = it
@@ -413,7 +424,7 @@ fun DialogCourtSelection(onSelect: (Court) -> Unit) {
                 )
                 isSearchOpen = true
             },
-            label = { Text("Court Name") },
+            label = { if (courtName.isNotBlank()) Text(courtName) else Text("Enter court name...") },
             modifier = Modifier.fillMaxWidth()
         )
         DropdownMenu(

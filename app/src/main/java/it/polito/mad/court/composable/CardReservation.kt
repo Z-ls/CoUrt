@@ -14,8 +14,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults.cardColors
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,18 +34,15 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import it.polito.mad.court.R
-import it.polito.mad.court.dataclass.Court
-import it.polito.mad.court.dataclass.DateString
 import it.polito.mad.court.dataclass.Reservation
-import it.polito.mad.court.dataclass.TimeString
-import it.polito.mad.court.dataclass.User
-import java.time.LocalDate
 
 @Composable
-fun CardReservation(res: Reservation) {
+fun CardReservation(
+    res: Reservation, onModifyClick: () -> Unit,
+    onRemoveClick: () -> Unit
+) {
 
     var isExpanded by remember { mutableStateOf(false) }
     val onClick = { isExpanded = !isExpanded }
@@ -113,7 +115,7 @@ fun CardReservation(res: Reservation) {
                     visible = isExpanded,
                     Modifier.alpha(alpha)
                 ) {
-                    CardReservationAdditionalInfo(res)
+                    CardReservationAdditionalInfo(res, onModifyClick, onRemoveClick)
                 }
             }
         }
@@ -121,12 +123,20 @@ fun CardReservation(res: Reservation) {
 }
 
 @Composable
-fun CardReservationAdditionalInfo(res: Reservation) {
+fun CardReservationAdditionalInfo(
+    res: Reservation,
+    onModifyClick: () -> Unit,
+    onRemoveClick: () -> Unit
+) {
     Column {
         ReservationDetailRow("Price", "${res.price} Euro")
         ReservationDetailRow(
             "Level",
             listOf("Beginner", "Intermediate", "Advanced")[res.skillLevel]
+        )
+        ActionButtonRow(
+            onModifyClick = onModifyClick,
+            onRemoveClick = onRemoveClick
         )
     }
 }
@@ -150,41 +160,35 @@ fun ReservationDetailRow(label: String, value: String) {
     }
 }
 
-@Preview
 @Composable
-fun CardReservationPreview() {
-    val res = Reservation(
-        court = Court(
-            name = "Basketball court",
-            address = "Via Giuseppe Verdi, 5, 10124 Torino TO",
-            city = "Torino",
-            country = "Italy",
-            sport = "Basketball",
-            price = 10.0,
-            rating = 4.5
-        ),
-        user = User(
-            email = "johndoe@gmail.com",
-            firstname = "John",
-            lastname = "doe",
-            nickname = "J-Doe",
-            gender = "male",
-            birthdate = LocalDate.of(1993, 5, 5),
-            height = 1.83,
-            weight = 75.0,
-            city = "Torino",
-            country = "Italy",
-            bio = "I like playing basketball",
-            phone = "110-120-12315"
-        ),
-        date = DateString("05-05-2021"),
-        time = TimeString("10:00"),
-        duration = 1,
-        price = 10,
-        minPlayers = 1,
-        maxPlayers = 10,
-        numPlayers = 8,
-        skillLevel = 0
-    )
-    CardReservation(res)
+fun ActionButtonRow(
+    onModifyClick: () -> Unit,
+    onRemoveClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End
+    ) {
+        IconButton(
+            onClick = { onModifyClick() },
+            modifier = Modifier.padding(end = 8.dp),
+        ) {
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = "Modify",
+                tint = Color.Black
+            )
+        }
+
+        IconButton(
+            onClick = { onRemoveClick() },
+        ) {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "Remove",
+                tint = Color.Red
+            )
+        }
+    }
 }

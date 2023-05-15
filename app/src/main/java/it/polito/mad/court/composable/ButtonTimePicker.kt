@@ -4,12 +4,10 @@ import android.app.TimePickerDialog
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ButtonTimePicker(selectedTime: LocalTime, onTimeChange: (LocalTime) -> Unit) {
@@ -19,7 +17,7 @@ fun ButtonTimePicker(selectedTime: LocalTime, onTimeChange: (LocalTime) -> Unit)
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hourSel, minuteSel ->
-            onTimeChange(LocalTime.of(hourSel, minuteSel))
+            onTimeChange(parseTimeSelected(hourSel, minuteSel))
         },
         selectedTime.hour,
         selectedTime.minute,
@@ -37,11 +35,15 @@ fun ButtonTimePicker(selectedTime: LocalTime, onTimeChange: (LocalTime) -> Unit)
     )
 }
 
-@Preview
-@Composable
-fun TimePickerPreview() {
-    val time = remember { mutableStateOf(LocalTime.now()) }
-    ButtonTimePicker(time.value) {
-        time.value = it
+fun parseTimeSelected(hourSel: Int, minuteSel: Int): LocalTime {
+    val formatter = DateTimeFormatter.ofPattern("HH:mm")
+    return if (hourSel < 10 && minuteSel < 10) {
+        LocalTime.parse(("0${hourSel}:0${minuteSel}"), formatter)
+    } else if (hourSel < 10) {
+        LocalTime.parse(("0${hourSel}:${minuteSel}"), formatter)
+    } else if (minuteSel < 10) {
+        LocalTime.parse(("${hourSel}:0${minuteSel}"), formatter)
+    } else {
+        LocalTime.parse(("${hourSel}:${minuteSel}"), formatter)
     }
 }

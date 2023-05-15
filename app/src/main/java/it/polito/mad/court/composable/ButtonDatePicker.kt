@@ -4,12 +4,10 @@ import android.app.DatePickerDialog
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ButtonDatePicker(selectedDate: LocalDate, onTimeChange: (LocalDate) -> Unit) {
@@ -19,7 +17,9 @@ fun ButtonDatePicker(selectedDate: LocalDate, onTimeChange: (LocalDate) -> Unit)
     val datePickerDialog = DatePickerDialog(
         context,
         { _, yearSel, monthSel, daySel ->
-            onTimeChange(LocalDate.of(yearSel, monthSel + 1, daySel))
+            onTimeChange(
+                parseDateSelected(yearSel, monthSel, daySel)
+            )
         },
         selectedDate.year, selectedDate.monthValue - 1, selectedDate.dayOfMonth
     )
@@ -35,11 +35,15 @@ fun ButtonDatePicker(selectedDate: LocalDate, onTimeChange: (LocalDate) -> Unit)
     )
 }
 
-@Preview
-@Composable
-fun ButtonDatePickerPreview() {
-    val date = remember { mutableStateOf(LocalDate.now()) }
-    ButtonDatePicker(date.value) {
-        date.value = it
+fun parseDateSelected(yearSel: Int, monthSel: Int, daySel: Int): LocalDate {
+    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+    return if (daySel < 10 && monthSel < 10) {
+        LocalDate.parse(("0${daySel}-0${monthSel + 1}-${yearSel}"), formatter)
+    } else if (daySel < 10) {
+        LocalDate.parse(("0${daySel}-${monthSel + 1}-${yearSel}"), formatter)
+    } else if (monthSel < 10) {
+        LocalDate.parse(("${daySel}-0${monthSel + 1}-${yearSel}"), formatter)
+    } else {
+        LocalDate.parse(("${daySel}-${monthSel + 1}-${yearSel}"), formatter)
     }
 }

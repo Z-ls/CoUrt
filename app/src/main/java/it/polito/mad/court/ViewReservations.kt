@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ import it.polito.mad.court.composable.ButtonDatePicker
 import it.polito.mad.court.composable.CardReservation
 import it.polito.mad.court.composable.DialogReservationForm
 import it.polito.mad.court.composable.FloatingButton
+import it.polito.mad.court.dataclass.DateString
 import it.polito.mad.court.dataclass.Reservation
 import it.polito.mad.court.dataclass.User
 import it.polito.mad.court.ui.theme.CoUrtTheme
@@ -57,13 +59,21 @@ class ViewReservations : ComponentActivity() {
 @Composable
 fun PageViewReservations(user: User = User()) {
 
-    val listReservations = remember { mutableStateOf(listOf<Reservation>()) }
-    DbCourt().getReservations() {
-        listReservations.value = it
-    }
+    val listReservations = remember { mutableStateOf<List<Reservation>>(listOf()) }
+    val selectedReservation = remember { mutableStateOf(Reservation()) }
+    val selectedDate = remember { mutableStateOf(LocalDate.now()) }
     val showDialog = remember { mutableStateOf(false) }
-    val selectedDate = remember {
-        mutableStateOf(LocalDate.now())
+
+    fun getListReservations() {
+        DbCourt().getReservations { reservations ->
+            listReservations.value = reservations.filter { res ->
+                res.date.date == DateString(selectedDate.value).date
+            }
+        }
+    }
+
+    LaunchedEffect(selectedDate.value) {
+        getListReservations()
     }
 
     Column(
@@ -84,9 +94,6 @@ fun PageViewReservations(user: User = User()) {
         ) {
             ButtonDatePicker(selectedDate = selectedDate.value) {
                 selectedDate.value = it
-                listReservations.value = listReservations.value.filter { res ->
-                    res.date.date == it
-                }
             }
         }
         Row(
@@ -95,8 +102,18 @@ fun PageViewReservations(user: User = User()) {
                 .wrapContentWidth(Alignment.CenterHorizontally)
                 .padding(top = 16.dp, bottom = 16.dp)
         ) {
-            listReservations.value.forEach { res ->
-                CardReservation(res = res)
+            listReservations.value.iterator().forEach { res ->
+                CardReservation(
+                    res = res,
+                    onModifyClick = {
+                        selectedReservation.value = res
+                        showDialog.value = true
+                        getListReservations()
+                    },
+                    onRemoveClick = {
+                        DbCourt().deleteReservation(res)
+                        getListReservations()
+                    })
             }
         }
         Row(
@@ -107,11 +124,16 @@ fun PageViewReservations(user: User = User()) {
         ) {
             if (showDialog.value) {
                 DialogReservationForm(
+                    res = selectedReservation.value,
                     user = user,
-                    onDismiss = { showDialog.value = false }
+                    onDismiss = {
+                        showDialog.value = false
+                        getListReservations()
+                    }
                 )
             }
             FloatingButton(onClick = {
+                selectedReservation.value = Reservation(user = user)
                 showDialog.value = true
             }, containerColor = Orange80) {
                 Row(

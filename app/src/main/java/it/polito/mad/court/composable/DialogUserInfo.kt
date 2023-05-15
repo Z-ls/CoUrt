@@ -129,7 +129,7 @@ fun Page3() {
     var city by rememberSaveable { mutableStateOf("") }
     var country by rememberSaveable { mutableStateOf("") }
 
-    Column (
+    Column(
         modifier = Modifier
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
