@@ -1,7 +1,6 @@
 package it.polito.mad.court.composable
 
 import android.app.TimePickerDialog
-import android.text.format.DateFormat
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +23,7 @@ fun ButtonTimePicker(selectedTime: LocalTime, onTimeChange: (LocalTime) -> Unit)
         },
         selectedTime.hour,
         selectedTime.minute,
-        DateFormat.is24HourFormat(context)
+        true
     )
 
     OutlinedButton(

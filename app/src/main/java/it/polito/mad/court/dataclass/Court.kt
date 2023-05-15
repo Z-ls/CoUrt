@@ -13,7 +13,7 @@ data class Court(
     val closingTime: String = "",
     val price: Double = 0.0,
     val image: String = "",
-    val sport: Sport = Sport(),
+    val sport: String = "",
     val description: String = "",
     val isOutdoor: Boolean = false,
 )

@@ -33,11 +33,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import it.polito.mad.court.R
 import it.polito.mad.court.dataclass.Court
+import it.polito.mad.court.dataclass.DateString
 import it.polito.mad.court.dataclass.Reservation
-import it.polito.mad.court.dataclass.Sport
+import it.polito.mad.court.dataclass.TimeString
 import it.polito.mad.court.dataclass.User
 import java.time.LocalDate
-import java.time.LocalTime
 
 @Composable
 fun CardReservation(res: Reservation) {
@@ -108,7 +108,7 @@ fun CardReservation(res: Reservation) {
                     )
                 }
                 ReservationDetailRow("Durations", "${res.duration} hours")
-                ReservationDetailRow("Players", res.numPlayers.toString())
+                ReservationDetailRow("Players", "${res.numPlayers} / ${res.maxPlayers}")
                 AnimatedVisibility(
                     visible = isExpanded,
                     Modifier.alpha(alpha)
@@ -124,7 +124,10 @@ fun CardReservation(res: Reservation) {
 fun CardReservationAdditionalInfo(res: Reservation) {
     Column {
         ReservationDetailRow("Price", "${res.price} Euro")
-        ReservationDetailRow("Level", res.skillLevel)
+        ReservationDetailRow(
+            "Level",
+            listOf("Beginner", "Intermediate", "Advanced")[res.skillLevel]
+        )
     }
 }
 
@@ -156,7 +159,7 @@ fun CardReservationPreview() {
             address = "Via Giuseppe Verdi, 5, 10124 Torino TO",
             city = "Torino",
             country = "Italy",
-            sport = Sport(name = "Basketball"),
+            sport = "Basketball",
             price = 10.0,
             rating = 4.5
         ),
@@ -174,15 +177,14 @@ fun CardReservationPreview() {
             bio = "I like playing basketball",
             phone = "110-120-12315"
         ),
-        date = LocalDate.of(5, 5, 2023),
-        time = LocalTime.of(10, 0),
+        date = DateString("05-05-2021"),
+        time = TimeString("10:00"),
         duration = 1,
-        price = 10.0,
-        status = "pending",
+        price = 10,
+        minPlayers = 1,
+        maxPlayers = 10,
         numPlayers = 8,
-        skillLevel = "beginner"
-
+        skillLevel = 0
     )
-
     CardReservation(res)
 }

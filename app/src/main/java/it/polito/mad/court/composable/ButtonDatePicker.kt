@@ -21,7 +21,7 @@ fun ButtonDatePicker(selectedDate: LocalDate, onTimeChange: (LocalDate) -> Unit)
         { _, yearSel, monthSel, daySel ->
             onTimeChange(LocalDate.of(yearSel, monthSel + 1, daySel))
         },
-        selectedDate.year, selectedDate.monthValue, selectedDate.dayOfMonth
+        selectedDate.year, selectedDate.monthValue - 1, selectedDate.dayOfMonth
     )
 
     OutlinedButton(

@@ -13,6 +13,11 @@
         android:theme="@style/Theme.CoUrt"
         tools:targetApi="31">
         <activity
+            android:name=".ViewReservations"
+            android:exported="false"
+            android:label="@string/title_activity_view_reservations"
+            android:theme="@style/Theme.CoUrt" />
+        <activity
             android:name=".FormUserInfo"
             android:exported="false"
             android:label="@string/title_activity_form_user_info"
@@ -24,6 +29,7 @@
             android:theme="@style/Theme.CoUrt">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -31,11 +37,13 @@
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.CoUrt">
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
 
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
         </activity>
     </application>
 

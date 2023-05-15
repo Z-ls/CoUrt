@@ -1,9 +1,12 @@
 package it.polito.mad.court
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +26,14 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Greeting("Android")
+                    Button(
+                        modifier = Modifier.wrapContentSize(),
+                        onClick = {
+                        intent = Intent(this, ViewReservations::class.java)
+                        startActivity(intent)
+                    }) {
+                        Text("Reservations")
+                    }
                 }
             }
         }

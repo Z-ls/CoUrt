@@ -16,10 +16,6 @@ data class User(
     var city: String = "",
     var country: String = "",
     var bio: String = "",
-    var sportList: List<Sport> = listOf(),
-    var favoriteCourtList: List<Court> = listOf(),
-) {
-    fun save() {
-        TODO("Not yet implemented")
-    }
-}
+    var sportList: List<String> = listOf(),
+    var favoriteCourtList: List<String> = listOf(),
+)
